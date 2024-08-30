@@ -6,7 +6,8 @@ edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "migration"
+name = "forwarder"
+
 
 [features]
 default = []

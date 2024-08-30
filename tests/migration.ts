@@ -11,7 +11,7 @@ import * as solanaWeb3 from "@solana/web3.js";
 // import { assert } from "chai";
 // 552HXJshauLuvCCfAzYHLCWqJftdmgz71wpRiZip7798bkCffSvzHLUREFzSAG5AictcoJ3M4DyY7itoXrDFwnCk
 
-describe("migration", () => {
+describe("forwarder", () => {
   // Configure the client to use the local cluster.
   let provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
@@ -38,7 +38,6 @@ describe("migration", () => {
     const fromKp = provider.wallet;
     const toKp = new solanaWeb3.Keypair();
     const toKp1 = new solanaWeb3.Keypair();
-
     // Create a new mint and initialize it
     const mintKp = new solanaWeb3.Keypair();
     const mint = await createMint(
@@ -48,7 +47,7 @@ describe("migration", () => {
       null,
       0
     );
-
+    console.log(program.programId)
     // Assiociated token accounts for the new accounts
     const fromAta = await createAssociatedTokenAccount(
       provider.connection,
@@ -100,6 +99,22 @@ describe("migration", () => {
       .signers([signer])
       .rpc();
     console.log(`https://explorer.solana.com/tx/${txHash}?cluster=devnet`);
+    console.log("transactionhash",txHash)
     await program.provider.connection.getSignatureStatus(txHash);
   });
+
+  // it("Transfer Ownership", async () => {
+  //   const signer = provider.wallet.payer;
+  //   // const signer = provider.wallet;
+  //   // Test initialize function.
+  //   const tx = await program.methods
+  //     .
+  //     .accounts({
+  //       user: provider.wallet.publicKey,
+  //       authorizedAddress: provider.wallet.publicKey,
+  //     })
+  //     .rpc();
+  //   console.log("Your transaction signature", tx);
+  // });
+
 });
