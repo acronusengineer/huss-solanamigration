@@ -1,1 +1,10 @@
-.sol
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+yarn.lock
+**/node_modules
+cargo.lock
