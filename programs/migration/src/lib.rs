@@ -99,7 +99,7 @@ pub struct Initialize<'info> {
     #[account(mut, address=pubkey!("11111111111111111111111111111111"))]
     pub user: Signer<'info>,  
     /// The account that is authorized to call the function  
-    /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK: This is not dangerous
     pub authorized_address: AccountInfo<'info>,  
     pub system_program: Program<'info, System>,  
 }  
@@ -112,7 +112,7 @@ pub struct FlushTokens<'info> {
     #[account(mut)]  
     pub to_ata: Account<'info, TokenAccount>,  
     pub token_program: Program<'info, Token>,  
-    /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK: This is not dangerous 
     pub authorized_address: AccountInfo<'info>,  
 }  
 
@@ -128,7 +128,7 @@ pub struct CreateForwarder<'info> {
     pub forwarder: Account<'info, Forwarder>,  
     #[account(mut)]  
     pub user: Signer<'info>,
-    /// CHECK: This is not dangerous because we don't read or write from this account  
+    /// CHECK: This is not dangerous 
     pub authorized_address: AccountInfo<'info>,  
     pub system_program: Program<'info, System>,  
 }  
@@ -149,7 +149,7 @@ pub struct FlushTokenFromList<'info> {
     #[account(mut)]
     pub to_ata: Account<'info, TokenAccount>,
     pub token_program: Program<'info,Token>,
-    /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK: This is not dangerous
     pub authorized_address: AccountInfo<'info>, 
     // pub bumps: ForwarderBumps,   
 }
