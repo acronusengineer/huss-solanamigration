@@ -9,6 +9,7 @@ import {
 } from "@solana/spl-token";
 import * as solanaWeb3 from "@solana/web3.js";
 // import { assert } from "chai";
+// 552HXJshauLuvCCfAzYHLCWqJftdmgz71wpRiZip7798bkCffSvzHLUREFzSAG5AictcoJ3M4DyY7itoXrDFwnCk
 
 describe("migration", () => {
   // Configure the client to use the local cluster.
@@ -17,16 +18,23 @@ describe("migration", () => {
   const program = anchor.workspace.forwarder as Program<Forwarder>;
 
   it("Initialized", async () => {
+    const signer = provider.wallet.payer;
+    // const signer = provider.wallet;
     // Test initialize function.
-    const tx = await program.methods.initialize().rpc();
+    const tx = await program.methods
+      .initialize()
+      .accounts({
+        user: provider.wallet.publicKey,
+        authorizedAddress: provider.wallet.publicKey,
+      })
+      .rpc();
     console.log("Your transaction signature", tx);
   });
 
   it("Can_flush_SPL_tokens", async () => {
     // Test the flush_spl_tokens function
     // Generate the keypairs for the new account
-    // const program = anchor.workspace;
-    const signer = anchor.web3.Keypair.generate();
+    const signer = provider.wallet.payer;
     const fromKp = provider.wallet;
     const toKp = new solanaWeb3.Keypair();
     const toKp1 = new solanaWeb3.Keypair();
@@ -48,12 +56,14 @@ describe("migration", () => {
       mint,
       fromKp.publicKey
     );
+    console.log("fromAta--->",fromAta);
     const toAta = await createAssociatedTokenAccount(
       provider.connection,
       signer,
       mint,
       toKp.publicKey
     );
+    console.log("toAta--->",toAta);
     const toAta1 = await createAssociatedTokenAccount(
       provider.connection,
       signer,
@@ -83,12 +93,13 @@ describe("migration", () => {
       .accounts({
         from: fromKp.publicKey,
         fromAta: fromAta,
+        authorizedAddress: fromKp.publicKey,
+        toAta: toAta
       })
       .remainingAccounts(accounts)
       .signers([signer])
       .rpc();
     console.log(`https://explorer.solana.com/tx/${txHash}?cluster=devnet`);
     await program.provider.connection.getSignatureStatus(txHash);
-
   });
 });

@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer as SplTransfer};
-use solana_program::pubkey;
+// use solana_program::pubkey;
 
 declare_id!("8ZYUprHFV6SJTtvpknRqgxy5BafB5kbosQxq3tbyAqZD");
 
@@ -9,13 +9,14 @@ pub mod forwarder {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        require!(&ctx.accounts.user.key == &ctx.accounts.authorized_address.owner, CustomError::Unauthorized);
+        // msg!("keys: {}, {}", &ctx.accounts.user.key, &ctx.accounts.authorized_address);
+        require!(&ctx.accounts.user.key == &ctx.accounts.authorized_address.key, CustomError::Unauthorized);
         msg!("Greetings from: {:?}", ctx.program_id);
         Ok(())
     }
 
     pub fn flush_spl_tokens(ctx: Context<FlushTokens>, amount:u64) -> Result<()> {
-        require!(ctx.accounts.from.key == &ctx.accounts.authorized_address.owner, CustomError::Unauthorized);
+        require!(&ctx.accounts.from.key == &ctx.accounts.authorized_address.key, CustomError::Unauthorized);
         let destination = &ctx.accounts.to_ata;
         let source = &ctx.accounts.from_ata;
         let token_program = &ctx.accounts.token_program;
@@ -92,10 +93,8 @@ pub struct Forwarder {
 }  
 
 #[derive(Accounts)]  
-pub struct Initialize<'info> {  
-    #[account(init, payer = user, space = 8 + std::mem::size_of::<Forwarder>())]  
-    pub forwarder: Account<'info, Forwarder>,  
-    #[account(mut, address=pubkey!("11111111111111111111111111111111"))]
+pub struct Initialize<'info> { 
+    #[account(mut)]
     pub user: Signer<'info>,  
     /// The account that is authorized to call the function  
     /// CHECK: This is not dangerous
@@ -113,7 +112,7 @@ pub struct FlushTokens<'info> {
     pub to_ata: Account<'info, TokenAccount>,  
     pub token_program: Program<'info, Token>,  
     /// CHECK: This is not dangerous 
-    pub authorized_address: Account<'info, Forwarder>,  
+    pub authorized_address: AccountInfo<'info>,  
 }  
 
 #[derive(Accounts)]  
