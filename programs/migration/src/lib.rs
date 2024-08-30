@@ -9,13 +9,13 @@ pub mod forwarder {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        require!(&ctx.accounts.user.key == &ctx.accounts.authorized_address.key, CustomError::Unauthorized);
+        require!(&ctx.accounts.user.key == &ctx.accounts.authorized_address.owner, CustomError::Unauthorized);
         msg!("Greetings from: {:?}", ctx.program_id);
         Ok(())
     }
 
     pub fn flush_spl_tokens(ctx: Context<FlushTokens>, amount:u64) -> Result<()> {
-        require!(&ctx.accounts.from.key == &ctx.accounts.authorized_address.key, CustomError::Unauthorized);
+        require!(ctx.accounts.from.key == &ctx.accounts.authorized_address.owner, CustomError::Unauthorized);
         let destination = &ctx.accounts.to_ata;
         let source = &ctx.accounts.from_ata;
         let token_program = &ctx.accounts.token_program;
@@ -63,7 +63,7 @@ pub mod forwarder_factory {
     pub fn flush_tokens_from_list(ctx: Context<FlushTokenFromList>, amount:u64, accountlist: Vec<Pubkey>) -> Result<()> {
         for _account in accountlist {
                  // Ensure the account is authorized to flush tokens  
-                require!(&ctx.accounts.from.key == &ctx.accounts.authorized_address.key, CustomError::Unauthorized); 
+                require!(&ctx.accounts.from.key == &ctx.accounts.authorized_address.owner, CustomError::Unauthorized); 
                  let source = &ctx.accounts.from_ata;
                  // Call the existing flush_spl_tokens function
                  let destination = &ctx.accounts.to_ata;
@@ -91,7 +91,6 @@ pub struct Forwarder {
     pub owner: Pubkey,  
 }  
 
-
 #[derive(Accounts)]  
 pub struct Initialize<'info> {  
     #[account(init, payer = user, space = 8 + std::mem::size_of::<Forwarder>())]  
@@ -106,6 +105,7 @@ pub struct Initialize<'info> {
 
 #[derive(Accounts)]  
 pub struct FlushTokens<'info> { 
+    #[account(mut)]  
     pub from: Signer<'info>, 
     #[account(mut)]  
     pub from_ata: Account<'info, TokenAccount>,  
@@ -113,7 +113,7 @@ pub struct FlushTokens<'info> {
     pub to_ata: Account<'info, TokenAccount>,  
     pub token_program: Program<'info, Token>,  
     /// CHECK: This is not dangerous 
-    pub authorized_address: AccountInfo<'info>,  
+    pub authorized_address: Account<'info, Forwarder>,  
 }  
 
 #[derive(Accounts)]  
