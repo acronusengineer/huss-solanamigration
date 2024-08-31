@@ -36,9 +36,9 @@ pub mod forwarder {
         Ok(())
     }
 
-    pub fn create_forwarder(ctx: Context<CreateForwarder>) -> Result<()> {
+    pub fn create_forwarder(ctx: Context<CreateForwarder>, owner:Pubkey) -> Result<()> {
         let forwarder = &mut ctx.accounts.forwarder;
-        forwarder.owner = *ctx.accounts.authorized_address.key; 
+        forwarder.owner = owner; 
         msg!("New forwarder created and Forwarder owner: {:?}", forwarder.owner);
         Ok(())
     }
