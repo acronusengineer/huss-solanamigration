@@ -1,15 +1,16 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer as SplTransfer};
+use anchor_spl::token::{Token, TokenAccount, Transfer as SplTransfer};
 // use solana_program::pubkey;
 
 declare_id!("9bq1F9kiBcrCEPNHoNmCs4sZoY4v33gAoFmc6yijtmjU");
 
 #[program]
 pub mod forwarder {
+    use anchor_spl::token;
+
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        // msg!("keys: {}, {}", &ctx.accounts.user.key, &ctx.accounts.authorized_address);
         require!(&ctx.accounts.user.key == &ctx.accounts.authorized_address.key, CustomError::Unauthorized);
         msg!("Greetings from: {:?}", ctx.program_id);
         Ok(())
@@ -22,7 +23,7 @@ pub mod forwarder {
         let token_program = &ctx.accounts.token_program;
         let authority = &ctx.accounts.from;
 
-        //Transfer tokens from taker to owner of this contract
+        //Transfer tokens contract to other
         let cpi_accounts = SplTransfer {
             from: source.to_account_info().clone(),
             to: destination.to_account_info().clone(),
@@ -123,6 +124,7 @@ pub struct CreateForwarder<'info> {
 
 #[derive(Accounts)]
 pub struct ChangeAccountOwner<'info> {  
+    /// CHECK: This is not dangerous
     pub authorized_address: AccountInfo<'info>,  
     #[account(  
         mut,  

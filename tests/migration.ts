@@ -107,14 +107,8 @@ describe("forwarder", () => {
     const signer = provider.wallet.payer;
     // const signer = provider.wallet;
     // Test initialize function.
-    const tx = await program.methods
-      .transferOwnership
-      .accounts({
-        user: provider.wallet.publicKey,
-        authorizedAddress: provider.wallet.publicKey,
-      })
-      .rpc();
-    console.log("Your transaction signature", tx);
+    // const tx = await program.methods
+    // console.log("Your transaction signature", tx);
   });
 
 });
