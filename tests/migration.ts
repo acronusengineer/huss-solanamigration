@@ -103,18 +103,18 @@ describe("forwarder", () => {
     await program.provider.connection.getSignatureStatus(txHash);
   });
 
-  // it("Transfer Ownership", async () => {
-  //   const signer = provider.wallet.payer;
-  //   // const signer = provider.wallet;
-  //   // Test initialize function.
-  //   const tx = await program.methods
-  //     .
-  //     .accounts({
-  //       user: provider.wallet.publicKey,
-  //       authorizedAddress: provider.wallet.publicKey,
-  //     })
-  //     .rpc();
-  //   console.log("Your transaction signature", tx);
-  // });
+  it("Transfer Ownership", async () => {
+    const signer = provider.wallet.payer;
+    // const signer = provider.wallet;
+    // Test initialize function.
+    const tx = await program.methods
+      .transferOwnership
+      .accounts({
+        user: provider.wallet.publicKey,
+        authorizedAddress: provider.wallet.publicKey,
+      })
+      .rpc();
+    console.log("Your transaction signature", tx);
+  });
 
 });

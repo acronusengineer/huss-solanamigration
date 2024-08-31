@@ -36,23 +36,17 @@ pub mod forwarder {
     }
 
     pub fn create_forwarder(ctx: Context<CreateForwarder>) -> Result<()> {
-        let forwarder_address = ctx.accounts.forwarder.key();  
         let forwarder = &mut ctx.accounts.forwarder;
         forwarder.owner = *ctx.accounts.authorized_address.key; 
-        msg!("New forwarder created with address: {:?}", forwarder_address);
-        msg!("Forwarder owner: {:?}", forwarder.owner);
+        msg!("New forwarder created and Forwarder owner: {:?}", forwarder.owner);
         Ok(())
     }
 
     pub fn transfer_ownership(ctx: Context<ChangeAccountOwner>, new_owner:Pubkey) -> Result<()> {
-        // require!(&ctx.accounts.forwarder.key() == ctx.accounts.current_owner.key, CustomError::Unauthorized);
-        let pastowner = &mut ctx.accounts.forwarder.key();
-        //Update the owner of the forwarder to the new owner
-        let forwarder = &mut ctx.accounts.forwarder;   
-        forwarder.owner = new_owner;
-
+          // Change the contract owner to new owner
+          ctx.accounts.forwarder.owner = new_owner;
           // Log the ownership transfer  
-          msg!("Ownership of forwarder at {:?} transferred to {:?}", pastowner, forwarder.owner); 
+          msg!("Ownership of forwarder transferred to {:?}", new_owner); 
         Ok(())
     }
 
@@ -84,6 +78,7 @@ pub mod forwarder {
 #[account]  
 pub struct Forwarder {  
     pub owner: Pubkey,  
+    bump: u8
 }  
 
 #[derive(Accounts)]  
@@ -127,12 +122,15 @@ pub struct CreateForwarder<'info> {
 }  
 
 #[derive(Accounts)]
-pub struct ChangeAccountOwner<'info> {
-    #[account(mut)]
-    pub forwarder: Account<'info, Forwarder>,
-    #[account(mut)]
-    pub current_owner: Signer<'info>,
-}
+pub struct ChangeAccountOwner<'info> {  
+    pub authorized_address: AccountInfo<'info>,  
+    #[account(  
+        mut,  
+        seeds = [b"forwarder", authorized_address.key().as_ref()],  
+        bump = forwarder.bump,  
+    )]  
+    pub forwarder: Account<'info, Forwarder>,  
+}  
 
 #[derive(Accounts)]
 pub struct FlushTokenFromList<'info> {
