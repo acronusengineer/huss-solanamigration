@@ -56,6 +56,8 @@ describe("forwarder", () => {
       mint,
       fromKp.publicKey
     );
+
+    // const fromAtaBalance = await provider.connection;
     console.log("fromAta--->", fromAta);
     const toAta = await createAssociatedTokenAccount(
       provider.connection,
@@ -63,6 +65,7 @@ describe("forwarder", () => {
       mint,
       toKp.publicKey
     );
+
     console.log("toAta--->", toAta);
     const toAta1 = await createAssociatedTokenAccount(
       provider.connection,
@@ -99,7 +102,15 @@ describe("forwarder", () => {
       .remainingAccounts(accounts)
       .signers([signer])
       .rpc();
+    const fromAtaBalance = await provider.connection.getTokenAccountBalance(
+      fromAta
+    );
+    const toAtaBalance = await provider.connection.getTokenAccountBalance(
+      toAta
+    );
     console.log(`https://explorer.solana.com/tx/${txHash}?cluster=devnet`);
+    console.log(`fromAta's amount--->`, fromAtaBalance);
+    console.log(`toAta's amount--->`, toAtaBalance);
     console.log("transactionhash", txHash);
     await program.provider.connection.getSignatureStatus(txHash);
   });
@@ -107,6 +118,7 @@ describe("forwarder", () => {
   it("Transfer Ownership", async () => {
     const signer = provider.wallet.payer;
     // Test transownership function. First create forwarder pda
+
     const [forwarderPDA, _] = solanaWeb3.PublicKey.findProgramAddressSync(
       [
         anchor.utils.bytes.utf8.encode("forwarder"),
@@ -119,6 +131,7 @@ describe("forwarder", () => {
       .createForwarder(provider.wallet.publicKey)
       .signers([signer])
       .rpc();
+    console.log("111111111");
     expect(
       (await program.account.forwarder.fetch(forwarderPDA)).owner
     ).to.equal(provider.wallet.publicKey);
@@ -138,15 +151,21 @@ describe("forwarder", () => {
       toTransfer.publicKey
     );
     // And transfer its ownership to other
+    // const forwarderAccount = await program.account.forwarder.fetch(forwarderPDA);
     await program.methods
       .transferOwnership(toTransferAccount)
-      .accounts({ authorizedAddress: provider.wallet.publicKey })
+      .accounts({
+        authorizedAddress: provider.wallet.publicKey,
+        // forwarder: forwarderAccount, // Pass the forwarder account directly
+      })
       .signers([signer])
       .rpc();
     expect(
       (await program.account.forwarder.fetch(forwarderPDA)).owner
     ).to.equal(toTransferAccount);
-    console.log(`Transfer ownership from ${provider.wallet.publicKey} to ${toTransferAccount} successfully`);
+    console.log(
+      `Transfer ownership from ${provider.wallet.publicKey} to ${toTransferAccount} successfully`
+    );
     // const tx = await program.methods.transferOwnership(randomAta).rpc();
     // console.log("Your transaction signature", tx);
   });
