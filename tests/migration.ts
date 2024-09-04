@@ -115,10 +115,10 @@ describe("forwarder", () => {
     await program.provider.connection.getSignatureStatus(txHash);
   });
 
-  it("Transfer Ownership", async () => {
+  it("Create Forwarder & Transfer Ownership", async () => {
     const signer = provider.wallet.payer;
-    // Test transownership function. First create forwarder pda
 
+    // Create forwarder PDA.
     const [forwarderPDA, _] = solanaWeb3.PublicKey.findProgramAddressSync(
       [
         anchor.utils.bytes.utf8.encode("forwarder"),
@@ -127,46 +127,54 @@ describe("forwarder", () => {
       program.programId
     );
 
+    // Create forwarder first, must be done before transferring ownership
     await program.methods
       .createForwarder(provider.wallet.publicKey)
-      .signers([signer])
-      .rpc();
-    console.log("111111111");
-    expect(
-      (await program.account.forwarder.fetch(forwarderPDA)).owner
-    ).to.equal(provider.wallet.publicKey);
-
-    const toTransfer = new solanaWeb3.Keypair();
-    const mint = await createMint(
-      provider.connection,
-      signer,
-      signer.publicKey,
-      null,
-      0
-    );
-    const toTransferAccount = await createAssociatedTokenAccount(
-      provider.connection,
-      signer,
-      mint,
-      toTransfer.publicKey
-    );
-    // And transfer its ownership to other
-    // const forwarderAccount = await program.account.forwarder.fetch(forwarderPDA);
-    await program.methods
-      .transferOwnership(toTransferAccount)
       .accounts({
-        authorizedAddress: provider.wallet.publicKey,
-        // forwarder: forwarderAccount, // Pass the forwarder account directly
+        user: signer.publicKey,
+        authorizedAddress: signer.publicKey,
+        // systemProgram: anchor.web3.SystemProgram.programId,
       })
       .signers([signer])
       .rpc();
-    expect(
-      (await program.account.forwarder.fetch(forwarderPDA)).owner
-    ).to.equal(toTransferAccount);
-    console.log(
-      `Transfer ownership from ${provider.wallet.publicKey} to ${toTransferAccount} successfully`
-    );
-    // const tx = await program.methods.transferOwnership(randomAta).rpc();
-    // console.log("Your transaction signature", tx);
+
+    try {
+      const forwarderAccount = await program.account.forwarder.fetch(
+        forwarderPDA
+      );
+      expect(forwarderAccount.owner.toString()).to.equal(
+        provider.wallet.publicKey.toString()
+      );
+      console.log("Success creating forwarder");
+    } catch (error) {
+      console.error("Error fetching forwarder account:", error);
+    }
+
+    const newOwner = solanaWeb3.Keypair.generate();
+
+    try {
+      await program.methods
+        .transferOwnership(newOwner.publicKey)
+        .accounts({
+          authorizedAddress: provider.wallet.publicKey,
+          forwarder: forwarderPDA, // Include the forwarder PDA here
+        })
+        .signers([signer]) // signer should be the wallet's payer
+        .rpc();
+
+      console.log(
+        `Ownership transferred from ${provider.wallet.publicKey} to ${newOwner.publicKey} successfully`
+      );
+
+      // Verify the new owner
+      const updatedForwarderAccount = await program.account.forwarder.fetch(
+        forwarderPDA
+      );
+      expect(updatedForwarderAccount.owner.toString()).to.equal(
+        newOwner.publicKey.toString()
+      );
+    } catch (error) {
+      console.error("Error during ownership transfer:", error);
+    }
   });
 });

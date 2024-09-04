@@ -43,7 +43,7 @@ pub mod forwarder {
         Ok(())
     }
 
-    pub fn transfer_ownership(ctx: Context<ChangeAccountOwner>, new_owner:Pubkey) -> Result<()> {
+    pub fn transfer_ownership(ctx: Context<TransferOwnership>, new_owner:Pubkey) -> Result<()> {
           // Change the contract owner to new owner
           ctx.accounts.forwarder.owner = new_owner;
           // Log the ownership transfer  
@@ -122,16 +122,13 @@ pub struct CreateForwarder<'info> {
     pub system_program: Program<'info, System>,  
 }  
 
-#[derive(Accounts)]
-pub struct ChangeAccountOwner<'info> {  
-    /// CHECK: This is not dangerous
-    pub authorized_address: AccountInfo<'info>,  
-    #[account(  
-        mut,  
-        seeds = [b"forwarder", authorized_address.key().as_ref()],  
-        bump = forwarder.bump,  
-    )]  
+#[derive(Accounts)]  
+pub struct TransferOwnership<'info> {  
+    #[account(mut,   
+        seeds = [b"forwarder", authorized_address.key().as_ref()],   
+        bump)]  
     pub forwarder: Account<'info, Forwarder>,  
+    pub authorized_address: Signer<'info>,  
 }  
 
 #[derive(Accounts)]
